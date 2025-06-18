@@ -1,7 +1,7 @@
 // js/ui.js
 import { generateTradingSignal } from './signals.js';
 import { updateChartWithSignal } from './chart.js';
-import { currentCandles } from './data.js';
+import { initialState, currentCandles } from './data.js';
 import { currentTimezone, formatUnixTimestamp } from './utils.js';
 
 export function updateWithSignal(signalResult, isCached = false, isRestored = false) {
