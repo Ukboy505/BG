@@ -91,6 +91,8 @@ export function initializeChart() {
     }
 }
 
+initializeChart()
+
 export function updateChart(candles, priceLevels = null) {
     if (!chart || !candlestickSeries) {
         if (!initializeChart()) {
