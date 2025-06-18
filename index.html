@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitget Spot Trading Signals</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <script src="lib/lightweight-charts.js"></script>
+    <script src="lib/ta-lib.js"></script>
+    <script src="js/toggle.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Bitget Spot Trading Signals</h1>
+        <div class="timezone-selector">
+            <label for="timezone">Timezone:</label>
+            <select id="timezone">
+                <option value="UTC" selected>UTC</option>
+                <option value="WAT">WAT</option>
+            </select>
+            <span class="tooltip">
+                <span style="cursor: help; text-decoration: underline;">[?]</span>
+                <span class="tooltiptext">Select timezone for timestamp display (UTC or WAT).</span>
+            </span>
+        </div>
+        <h2 id="toggle-candlestick-data" onclick="toggleSection('candlestick-data-container', 'toggle-candlestick-data')">Show Candlestick Data ▼</h2>
+        <div id="candlestick-data-container" class="collapsible-content" style="display: none;">
+            <div class="table-container">
+                <table id="candlestick-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Open</th>
+                            <th>High</th>
+                            <th>Low</th>
+                            <th>Close</th>
+                            <th>Base Volume</th>
+                            <th>USDT Volume</th>
+                            <th>Quote Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candles"></tbody>
+                </table>
+            </div>
+            <h2 onclick="toggleSection('candlestick-data-container', 'toggle-candlestick-data')">Hide Candlestick Data ▲</h2>
+        </div>
+        <div class="input-group">
+            <div class="input-field">
+                <label for="input-symbol">Symbol (e.g., BTCUSDT)</label>
+                <input id="input-symbol" type="text" value="BTCUSDT">
+                <span class="tooltip">
+                    <span style="cursor: help; text-decoration: underline;">[?]</span>
+                    <span class="tooltiptext">Enter trading pair (e.g., BTCUSDT for Bitcoin/USDT).</span>
+                </span>
+            </div>
+            <div class="input-field">
+                <label for="input-granularity">Granularity</label>
+                <select id="input-granularity">
+                    <option value="1min">1 Minute</option>
+                    <option value="5min">5 Minutes</option>
+                    <option value="15min">15 Minutes</option>
+                    <option value="1h" selected>1 Hour</option>
+                    <option value="4h">4 Hours</option>
+                    <option value="1day">1 Day</option>
+                </select>
+                <span class="tooltip">
+                    <span style="cursor: help; text-decoration: underline;">[?]</span>
+                    <span class="tooltiptext">Select time interval for candlestick data.</span>
+                </span>
+            </div>
+            <div class="input-field">
+                <label for="input-limit">Limit (1-1000)</label>
+                <input id="input-limit" type="number" value="200" min="1" max="1000">
+                <span class="tooltip">
+                    <span style="cursor: help; text-decoration: underline;">[?]</span>
+                    <span class="tooltiptext">Number of candles to fetch (1 to 1000).</span>
+                </span>
+            </div>
+            <div class="input-field">
+                <label for="input-fee">Trading Fee (%)</label>
+                <input id="input-fee" type="number" step="0.01" value="0.00" min="0" max="1">
+                <span class="tooltip">
+                    <span style="cursor: help; text-decoration: underline;">[?]</span>
+                    <span class="tooltiptext">Exchange fee percentage per trade (0% to 1%).</span>
+                </span>
+            </div>
+            <div class="input-field">
+                <label for="input-trade-size">Trade Size (Quote)</label>
+                <input id="input-trade-size" type="number" step="0.01" value="1000" min="0">
+                <span class="tooltip">
+                    <span style="cursor: help; text-decoration: underline;">[?]</span>
+                    <span class="tooltiptext">Trade amount in quote token (e.g., USDT).</span>
+                </span>
+            </div>
+            <div class="input-field">
+                <label for="input-start-time">Start Time (Optional)</label>
+                <input id="input-start-time" type="datetime-local">
+                <span class="tooltip">
+                    <span style="cursor: help; text-decoration: underline;">[?]</span>
+                    <span class="tooltiptext">Optional start time for data filtering.</span>
+                </span>
+            </div>
+            <div class="input-field">
+                <label for="input-end-time">End Time (Optional)</label>
+                <input id="input-end-time" type="datetime-local">
+                <span class="tooltip">
+                    <span style="cursor: help; text-decoration: underline;">[?]</span>
+                    <span class="tooltiptext">Optional end time for data filtering.</span>
+                </span>
+            </div>
+            <button id="request">Get Data & Signal</button>
+            <button id="recalculate" disabled>Calculate Signal</button>
+            <button id="restore" disabled>Restore Analysis</button>
+        </div>
+        <h2 id="indicator-toggle" onclick="toggleSection('indicator-settings', 'indicator-toggle')">Indicator Settings ▼</h2>
+        <div id="indicator-settings" class="collapsible-content" style="display: none;">
+            <div class="indicator-group">
+                <label>Buy Signal Entry Adjustments (%)</label>
+                <div class="input-field">
+                    <label for="buy-very-weak-below-support">Very Weak Buy: Below Support</label>
+                    <input type="number" id="buy-very-weak-below-support" value="1" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Adjustment for buy signal below support level.</span>
+                    </span>
+                </div>
+                <div class="input-field">
+                    <label for="buy-moderate-above-support">Moderate Buy: Above Support</label>
+                    <input type="number" id="buy-moderate-above-support" value="0.5" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Adjustment for buy signal above support level.</span>
+                    </span>
+                </div>
+                <div class="input-field">
+                    <label for="buy-strong-above-current">Strong Buy: Above Current</label>
+                    <input type="number" id="buy-strong-above-current" value="1" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Adjustment for strong buy signal above current price.</span>
+                    </span>
+                </div>
+            </div>
+            <div class="indicator-group">
+                <label>Sell Signal Take Profit Adjustments (%)</label>
+                <div class="input-field">
+                    <label for="sell-strong-below-current">Strong Sell: Below Current</label>
+                    <input type="number" id="sell-strong-below-current" value="1" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Adjustment for strong sell signal below current price.</span>
+                    </span>
+                </div>
+                <div class="input-field">
+                    <label for="sell-moderate-above-current">Moderate Sell: Above Current</label>
+                    <input type="number" id="sell-moderate-above-current" value="0.5" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Adjustment for moderate sell signal above current price.</span>
+                    </span>
+                </div>
+                <div class="input-field">
+                    <label for="sell-very-weak-above-resistance">Very Weak Sell: Above Resistance</label>
+                    <input type="number" id="sell-very-weak-above-resistance" value="1" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Adjustment for sell signal above resistance level.</span>
+                    </span>
+                </div>
+                <div class="input-field">
+                    <label for="sell-very-weak-new-entry-below-current">Very Weak Sell: New Entry Below Current</label>
+                    <input type="number" id="sell-very-weak-new-entry-below-current" value="1" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Adjustment for new sell entry below current price.</span>
+                    </span>
+                </div>
+            </div>
+            <div class="indicator-group">
+                <label>Stop Loss Adjustments (%)</label>
+                <div class="input-field">
+                    <label for="stop-loss-buy">Buy Signal Stop Loss Below Entry Price</label>
+                    <input type="number" id="stop-loss-buy" value="1" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Stop loss percentage below entry price for buy signals.</span>
+                    </span>
+                </div>
+                <div class="input-field">
+                    <label for="stop-loss-sell">Sell Signal Stop Loss Below Current</label>
+                    <input type="number" id="stop-loss-sell" value="0.5" min="0" step="0.1" placeholder="%">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Stop loss percentage below current price for sell signals.</span>
+                    </span>
+                </div>
+            </div>
+            <div class="indicator-group">
+                <label>Support/Resistance Settings</label>
+                <div class="input-field">
+                    <label for="support-resistance-lookback">Lookback Period (Candles)</label>
+                    <input type="number" id="support-resistance-lookback" value="20" min="5" max="100" step="1">
+                    <span class="tooltip">
+                        <span style="cursor: help; text-decoration: underline;">[?]</span>
+                        <span class="tooltiptext">Number of candles to analyze for support/resistance levels.</span>
+                    </span>
+                </div>
+            </div>
+            <div class="collapsible">
+                <button class="collapsible-button" onclick="toggleSection(this)">Component Weights ▼</button>
+                <div class="collapsible-content">
+                    <div class="indicator-group">
+                        <label>Component Weights</label>
+                        <div class="input-field">
+                            <label for="candle-weight">Candlestick Patterns (%)</label>
+                            <input type="number" id="candle-weight" value="20" min="0" max="100">
+                            <span class="tooltip">
+                                <span style="cursor: help; text-decoration: underline;">[?]</span>
+                                <span class="tooltiptext">Weight of candlestick patterns in signal scoring (sums to 100%).</span>
+                            </span>
+                        </div>
+                        <div class="input-field">
+                            <label for="chart-weight">Chart Patterns (%)</label>
+                            <input type="number" id="chart-weight" value="35" min="0" max="100">
+                            <span class="tooltip">
+                                <span style="cursor: help; text-decoration: underline;">[?]</span>
+                                <span class="tooltiptext">Weight of chart patterns in signal scoring (sums to 100%).</span>
+                            </span>
+                        </div>
+                        <div class="input-field">
+                            <label for="indicator-weight">Indicators (%)</label>
+                            <input type="number" id="indicator-weight" value="45" min="0" max="100">
+                            <span class="tooltip">
+                                <span style="cursor: help; text-decoration: underline;">[?]</span>
+                                <span class="tooltiptext">Weight of technical indicators in signal scoring (sums to 100%).</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="indicator-settings">
+                <!-- RSI -->
+                <div class="indicator-group">
+                    <label>RSI</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="rsi-enabled" checked>
+                        <label for="rsi-enabled" class="checkbox-label">Enable RSI</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Relative Strength Index measures momentum. Period defines lookback candles.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="rsi-period">Period</label>
+                        <input type="number" id="rsi-period" value="14" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="rsi-weight">Weight</label>
+                        <input type="number" id="rsi-weight" value="10" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of RSI in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Stochastic -->
+                <div class="indicator-group">
+                    <label>Stochastic</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="stoch-enabled" checked>
+                        <label for="stoch-enabled" class="checkbox-label">Enable Stochastic</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Compares closing price to price range. K Period for %K, D Period for %D, Smooth for signal smoothing.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="stoch-k">K Period</label>
+                        <input type="number" id="stoch-k" value="14" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="stoch-d">D Period</label>
+                        <input type="number" id="stoch-d" value="3" min="1" max="10">
+                    </div>
+                    <div class="input-field">
+                        <label for="stoch-smooth">Smooth</label>
+                        <input type="number" id="stoch-smooth" value="3" min="1" max="10">
+                    </div>
+                    <div class="input-field">
+                        <label for="stoch-weight">Weight</label>
+                        <input type="number" id="stoch-weight" value="10" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Stochastic in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- MACD -->
+                <div class="indicator-group">
+                    <label>MACD</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="macd-enabled" checked>
+                        <label for="macd-enabled" class="checkbox-label">Enable MACD</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Moving Average Convergence Divergence for trend and momentum. Fast/Slow periods for EMAs, Signal for smoothing.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="macd-fast">Fast Period</label>
+                        <input type="number" id="macd-fast" value="12" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="macd-slow">Slow Period</label>
+                        <input type="number" id="macd-slow" value="26" min="10" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="macd-signal">Signal Period</label>
+                        <input type="number" id="macd-signal" value="9" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="macd-weight">Weight</label>
+                        <input type="number" id="macd-weight" value="10" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of MACD in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- ATR -->
+                <div class="indicator-group">
+                    <label>ATR</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="atr-enabled" checked>
+                        <label for="atr-enabled" class="checkbox-label">Enable ATR</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Average True Range measures volatility. Period defines lookback candles.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="atr-period">Period</label>
+                        <input type="number" id="atr-period" value="14" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="atr-weight">Weight</label>
+                        <input type="number" id="atr-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of ATR in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- EMA -->
+                <div class="indicator-group">
+                    <label>EMA</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="ema-enabled" checked>
+                        <label for="ema-enabled" class="checkbox-label">Enable EMA</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Exponential Moving Average emphasizes recent prices. Short/Long periods for crossover signals.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="ema-short">Short Period</label>
+                        <input type="number" id="ema-short" value="12" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="ema-long">Long Period</label>
+                        <input type="number" id="ema-long" value="26" min="10" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="ema-weight">Weight</label>
+                        <input type="number" id="ema-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of EMA in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- MA -->
+                <div class="indicator-group">
+                    <label>MA</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="ma-enabled">
+                        <label for="ma-enabled" class="checkbox-label">Enable MA</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Simple Moving Average smooths price data to identify trends. Period defines lookback candles.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="ma-period">Period</label>
+                        <input type="number" id="ma-period" value="20" min="5" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="ma-weight">Weight</label>
+                        <input type="number" id="ma-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of MA in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Bollinger Bands -->
+                <div class="indicator-group">
+                    <label>Bollinger Bands</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="bollinger-enabled" checked>
+                        <label for="bollinger-enabled" class="checkbox-label">Enable Bollinger Bands</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Volatility bands around a moving average. Period for MA, Deviation for band width.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="bollinger-period">Period</label>
+                        <input type="number" id="bollinger-period" value="20" min="10" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="bollinger-deviation">Deviation</label>
+                        <input type="number" id="bollinger-deviation" value="2" min="0.5" max="5" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label for="bollinger-weight">Weight</label>
+                        <input type="number" id="bollinger-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Bollinger Bands in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Aroon -->
+                <div class="indicator-group">
+                    <label>Aroon</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="aroon-enabled" checked>
+                        <label for="aroon-enabled" class="checkbox-label">Enable Aroon</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Measures trend strength and direction. Period defines lookback candles.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="aroon-period">Period</label>
+                        <input type="number" id="aroon-period" value="25" min="5" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="aroon-weight">Weight</label>
+                        <input type="number" id="aroon-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Aroon in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Pivot Points -->
+                <div class="indicator-group">
+                    <label>Pivot Points</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="pivot-enabled" checked>
+                        <label for="pivot-enabled" class="checkbox-label">Enable Pivot Points</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Calculates key price levels based on high, low, close. Period defines lookback.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="pivot-period">Period</label>
+                        <input type="number" id="pivot-period" value="14" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="pivot-weight">Weight</label>
+                        <input type="number" id="pivot-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Pivot Points in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Volume -->
+                <div class="indicator-group">
+                    <label>Volume</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="volume-enabled" checked>
+                        <label for="volume-enabled" class="checkbox-label">Enable Volume</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Measures trading volume to confirm trends. Period defines lookback for average volume.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="volume-period">Period</label>
+                        <input type="number" id="volume-period" value="14" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="volume-weight">Weight</label>
+                        <input type="number" id="volume-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Volume in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Ichimoku -->
+                <div class="indicator-group">
+                    <label>Ichimoku</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="ichimoku-enabled">
+                        <label for="ichimoku-enabled" class="checkbox-label">Enable Ichimoku</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Multi-line trend indicator. Tenkan/Kijun for short/long trends, Senkou B for cloud, Displacement for period shift.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="ichimoku-tenkan">Tenkan Period</label>
+                        <input type="number" id="ichimoku-tenkan" value="9" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="ichimoku-kijun">Kijun Period</label>
+                        <input type="number" id="ichimoku-kijun" value="26" min="10" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="ichimoku-senkou">Senkou B Period</label>
+                        <input type="number" id="ichimoku-senkou" value="52" min="20" max="200">
+                    </div>
+                    <div class="input-field">
+                        <label for="ichimoku-displacement">Displacement</label>
+                        <input type="number" id="ichimoku-displacement" value="26" min="10" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="ichimoku-weight">Weight</label>
+                        <input type="number" id="ichimoku-weight" value="10" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Ichimoku in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Fibonacci Retracement -->
+                <div class="indicator-group">
+                    <label>Fibonacci Retracement</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="fib-enabled">
+                        <label for="fib-enabled" class="checkbox-label">Enable Fibonacci Retracement</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Identifies potential reversal levels based on Fibonacci ratios. Period defines high/low range.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="fib-period">Period</label>
+                        <input type="number" id="fib-period" value="20" min="5" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="fib-weight">Weight</label>
+                        <input type="number" id="fib-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Fibonacci Retracement in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- CCI -->
+                <div class="indicator-group">
+                    <label>CCI</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="cci-enabled">
+                        <label for="cci-enabled" class="checkbox-label">Enable CCI</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Commodity Channel Index identifies overbought/oversold conditions. Period defines lookback candles.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="cci-period">Period</label>
+                        <input type="number" id="cci-period" value="20" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="cci-weight">Weight</label>
+                        <input type="number" id="cci-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of CCI in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- OBV -->
+                <div class="indicator-group">
+                    <label>OBV</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="obv-enabled">
+                        <label for="obv-enabled" class="checkbox-label">Enable OBV</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">On-Balance Volume tracks volume flow to confirm price trends. No additional parameters required.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="obv-weight">Weight</label>
+                        <input type="number" id="obv-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of OBV in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Chaikin Oscillator -->
+                <div class="indicator-group">
+                    <label>Chaikin Oscillator</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="chaikin-osc-enabled">
+                        <label for="chaikin-osc-enabled" class="checkbox-label">Enable Chaikin Oscillator</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Measures accumulation/distribution based on volume. Fast/Slow periods for EMAs of ADL.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="chaikin-osc-fast">Fast Period</label>
+                        <input type="number" id="chaikin-osc-fast" value="3" min="1" max="10">
+                    </div>
+                    <div class="input-field">
+                        <label for="chaikin-osc-slow">Slow Period</label>
+                        <input type="number" id="chaikin-osc-slow" value="10" min="5" max="20">
+                    </div>
+                    <div class="input-field">
+                        <label for="chaikin-osc-weight">Weight</label>
+                        <input type="number" id="chaikin-osc-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Chaikin Oscillator in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Supertrend -->
+                <div class="indicator-group">
+                    <label>Supertrend</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="supertrend-enabled">
+                        <label for="supertrend-enabled" class="checkbox-label">Enable Supertrend</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Trend-following indicator combining price and volatility. Period for ATR, Multiplier for band width.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="supertrend-period">Period</label>
+                        <input type="number" id="supertrend-period" value="10" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="supertrend-multiplier">Multiplier</label>
+                        <input type="number" id="supertrend-multiplier" value="3" min="1" max="10" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label for="supertrend-weight">Weight</label>
+                        <input type="number" id="supertrend-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Supertrend in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- PSAR -->
+                <div class="indicator-group">
+                    <label>PSAR</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="psar-enabled">
+                        <label for="psar-enabled" class="checkbox-label">Enable PSAR</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Parabolic Stop and Reverse for trend direction. Step for acceleration, Max for maximum step.</span>
+                        </span>
+                    </div>
+                    evangelist-group:
+                        <span for="psar-step">Step</span>
+                    <input type="number" id="psar-step" value="0.14" min="0.01" max="0.1">
+                    <div class="input-field">
+                        <span for="psar-max">Max</span>
+                    <input type="number" id="psar-max" value="0.2" min="0.1" max="0.5" step="0.01">
+                    <div class="input-field">
+                        <label for="psar-weight">Weight</label>
+                        <input type="number" id="psar-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of PSAR in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Fractals -->
+                <div class="indicator-group">
+                    <label>Fractals</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="fractals-enabled">
+                        <label for="fractals-enabled" class="checkbox-label">Enable Fractals</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Identifies reversal points in price action. No additional parameters.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="fractals-weight">Weight</label>
+                        <input type="number" id="fractals-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Fractals in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- ZigZag -->
+                <div class="indicator-group">
+                    <label>ZigZag</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="zigzag-enabled">
+                        <label for="zigzag-enabled" class="checkbox-label">Enable ZigZag</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Filters noise to highlight significant price swings. Deviation sets minimum price change percentage.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="zigzag-deviation">Deviation</label>
+                        <input type="number" id="zigzag-deviation" value="0.05" min="0.01" max="0.2" step="0.01">
+                    <div class="input-field">
+                        <label for="zigzag-weight">Weight</label>
+                        <input type="number" id="zigzag-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of ZigZag in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Heikin Ashi -->
+                <div class="indicator-group">
+                    <label>Heikin Ashi</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="ha-enabled">
+                        <label for="ha-enabled" class="checkbox-label">Enable Heikin Ashi</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Smooths candlestick patterns to reduce noise. No additional parameters.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="ha-weight">Weight</label>
+                        <input type="number" id="ha-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Heikin Ashi in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Donchian Channels -->
+                <div class="indicator-group">
+                    <label>Donchian Channels</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="don-enabled">
+                        <label for="don-enabled" class="checkbox-label">Enable Donchian Channels</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Identifies breakout levels based on high/low over a period.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="don-period">Period</label>
+                        <input type="number" id="don-period" value="20" min="5" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="don-weight">Weight</label>
+                        <input type="number" id="don-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Donchian Channels in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Fibonacci Bands -->
+                <div class="indicator-group">
+                    <label>Fibonacci Bands</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="fibbands-enabled">
+                        <label for="fibbands-enabled" class="checkbox-label">Enable Fibonacci Bands</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Dynamic bands based on Fibonacci levels and VWMA. Period for VWMA, Multiplier for band width.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="fibbands-period">Period</label>
+                        <input type="number" id="fibbands-period" value="20" min="5" max="100">
+                    </div>
+                    <div class="input-field">
+                        <label for="fibbands-multiplier">Multiplier</label>
+                        <input type="number" id="fibbands-multiplier" value="0.3" min="0.1" max="1" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label for="fibbands-weight">Weight</label>
+                        <input type="number" id="fibbands-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Fibonacci Bands in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Envelope -->
+                <div class="indicator-group">
+                    <label>Envelope</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="envelope-enabled">
+                        <label for="envelope-enabled" class="checkbox-label">Enable Envelope</label>
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Bands around a moving average for overbought/oversold signals. Period for MA, Deviation for band width.</span>
+                        </span>
+                    </div>
+                    <div class="input-field">
+                        <label for="envelope-period">Period</label>
+                        <input type="number" id="envelope-period" value="10" min="5" max="50">
+                    </div>
+                    <div class="input-field">
+                        <label for="envelope-deviation">Deviation</label>
+                        <input type="number" id="envelope-deviation" value="0.1" min="0.1" max="0.5" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="envelope-weight">Weight</label>
+                        <input type="number" id="envelope-weight" value="5" min="0">
+                        <span class="tooltip">
+                            <span style="cursor: help; text-decoration: underline;">[?]</span>
+                            <span class="tooltiptext">Weight of Envelope in indicator scoring.</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p id="success"></p>
+        <h2 id="toggle-chart-data" onclick="toggleSection('chart-data-container', 'toggle-chart-data')">Show Chart Data ▼</h2>
+        <div id="chart-data-container" class="collapsible-content" style="display: none;">
+            <div id="chart-legend" style="margin-bottom: 10px; color: #e0e0e0;"></div>
+            <div id="chart-container" style="margin-top: 20px;"></div>
+        </div>
+        <div id="signal-container" class="score-container">
+            <h2 id="signal"></h2>
+            <h3>Component Scores</h3>
+            <ul id="score-list" class="score-list"></ul>
+            <h3>Price Levels</h3>
+            <ul id="price-range-list" class="price-range-list"></ul>
+            <ul id="details" class="details-list"></ul>
+        </div>
+    </div>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
