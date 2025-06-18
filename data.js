@@ -6,7 +6,7 @@ import { updateChartWithSignal } from './chart.js';
 
 export let globalCandles = null;
 export let candlesData = [];
-export let tradeSize;
+export let tradeSize = null;
 export let initialState = {
        symbol: null,
        granularity: null,
