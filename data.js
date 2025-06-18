@@ -6,6 +6,7 @@ import { updateChartWithSignal } from './chart.js';
 
 export let globalCandles = null;
 export let candlesData = [];
+export let tradeSize;
 export let initialState = {
        symbol: null,
        granularity: null,
@@ -43,7 +44,6 @@ export let initialState = {
     signalResult: null
 };
 export let currentCandles = [];
-export let tradeSize = 1000;
 
 export async function fetchOHLCV() {
     try {
@@ -52,7 +52,8 @@ export async function fetchOHLCV() {
         const limit = parseInt(document.getElementById("input-limit").value);
         const startTimeInput = document.getElementById("input-start-time").value;
         const endTimeInput = document.getElementById("input-end-time").value;
-        const tradeSize = parseFloat(document.getElementById("input-trade-size").value) || 1000;
+        const newTradeSize = parseFloat(document.getElementById("input-trade-size").value) || 1000;
+        tradeSize = newTradeSize;
         const feePercent = parseFloat(document.getElementById("input-fee").value) || 0;
 
         if (!symbol) throw new Error("Symbol is required");
