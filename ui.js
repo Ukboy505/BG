@@ -1,6 +1,7 @@
 // js/ui.js
 import { generateTradingSignal } from './signals.js';
 import { updateChartWithSignal } from './chart.js';
+import { currentCandles } from './data.js';
 
 export function updateWithSignal(signalResult, isCached = false, isRestored = false) {
     const baseToken = initialState.symbol.slice(0, -4);
