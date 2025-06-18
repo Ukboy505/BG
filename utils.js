@@ -1,4 +1,7 @@
 // js/utils.js
+        // Timezone Handling
+export let currentTimezone = 'UTC';
+        
 export function formatUnixTimestamp(ms) {
             if (!ms) return '';
             const date = new Date(parseInt(ms));
