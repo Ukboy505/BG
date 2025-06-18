@@ -34,6 +34,7 @@ export function initializeChart() {
         resistanceLine = null;
         stopLossLine = null;
         takeProfitLine = null;
+        indicatorSeries = {};
     }
 
     try {
@@ -91,8 +92,6 @@ export function initializeChart() {
     }
 }
 
-initializeChart()
-
 export function updateChart(candles, priceLevels = null) {
     if (!chart || !candlestickSeries) {
         if (!initializeChart()) {
@@ -135,33 +134,45 @@ export function updateChart(candles, priceLevels = null) {
     candlestickSeries.setData(chartData);
 
     // Clear existing price lines
-    if (supportLine) { supportLine.remove(); supportLine = null; }
-    if (resistanceLine) { resistanceLine.remove(); resistanceLine = null; }
-    if (stopLossLine) { stopLossLine.remove(); stopLossLine = null; }
-    if (takeProfitLine) { takeProfitLine.remove(); takeProfitLine = null; }
+    if (supportLine) {
+        supportLine.remove();
+        supportLine = null;
+    }
+    if (resistanceLine) {
+        resistanceLine.remove();
+        resistanceLine = null;
+    }
+    if (stopLossLine) {
+        stopLossLine.remove();
+        stopLossLine = null;
+    }
+    if (takeProfitLine) {
+        takeProfitLine.remove();
+        takeProfitLine = null;
+    }
 
     // Add price lines if provided
-    if (priceLevels && priceLevels.buyPrice && priceLevels.sellPrice && priceLevels.stopLoss && priceLevels.takeProfit) {
-        const buyPrice = Number(priceLevels.buyPrice);
-        const sellPrice = Number(priceLevels.sellPrice);
+    if (priceLevels && priceLevels.support && priceLevels.resistance && priceLevels.stopLoss && priceLevels.takeProfit) {
+        const support = Number(priceLevels.support);
+        const resistance = Number(priceLevels.resistance);
         const stopLoss = Number(priceLevels.stopLoss);
         const takeProfit = Number(priceLevels.takeProfit);
 
         if (
-            !isNaN(buyPrice) && buyPrice > 0 &&
-            !isNaN(sellPrice) && sellPrice > 0 &&
+            !isNaN(support) && support > 0 &&
+            !isNaN(resistance) && resistance > 0 &&
             !isNaN(stopLoss) && stopLoss > 0 &&
             !isNaN(takeProfit) && takeProfit > 0
         ) {
             supportLine = candlestickSeries.createPriceLine({
-                price: buyPrice,
+                price: support,
                 color: '#28a745',
                 lineWidth: 1,
                 lineStyle: LightweightCharts.LineStyle.Dashed,
                 title: 'Support',
             });
             resistanceLine = candlestickSeries.createPriceLine({
-                price: sellPrice,
+                price: resistance,
                 color: '#dc3545',
                 lineWidth: 1,
                 lineStyle: LightweightCharts.LineStyle.Dashed,
@@ -198,16 +209,19 @@ export function updateChart(candles, priceLevels = null) {
     const params = getIndicatorParams();
     const indicatorData = calculateIndicatorChartData(candles, params);
 
-    // Add indicator series
+    // Add indicator series and store them
     if (indicatorData.rsi) {
         const rsiSeries = chart.addLineSeries({ color: '#ff9800', lineWidth: 1 });
         rsiSeries.setData(indicatorData.rsi);
+        indicatorSeries.rsi = rsiSeries;
     }
     if (indicatorData.stochastic_k) {
         const stochKSeries = chart.addLineSeries({ color: '#2196f3', lineWidth: 1 });
         stochKSeries.setData(indicatorData.stochastic_k);
         const stochDSeries = chart.addLineSeries({ color: '#f44336', lineWidth: 1 });
         stochDSeries.setData(indicatorData.stochastic_d);
+        indicatorSeries.stochastic_k = stochKSeries;
+        indicatorSeries.stochastic_d = stochDSeries;
     }
     if (indicatorData.macd) {
         const macdSeries = chart.addLineSeries({ color: '#3f51b5', lineWidth: 1 });
@@ -216,20 +230,27 @@ export function updateChart(candles, priceLevels = null) {
         macdSignalSeries.setData(indicatorData.macd_signal);
         const macdHistogramSeries = chart.addHistogramSeries({ color: '#4caf50' });
         macdHistogramSeries.setData(indicatorData.macd_histogram);
+        indicatorSeries.macd = macdSeries;
+        indicatorSeries.macd_signal = macdSignalSeries;
+        indicatorSeries.macd_histogram = macdHistogramSeries;
     }
     if (indicatorData.atr) {
         const atrSeries = chart.addLineSeries({ color: '#9c27b0', lineWidth: 1 });
         atrSeries.setData(indicatorData.atr);
+        indicatorSeries.atr = atrSeries;
     }
     if (indicatorData.ema_short) {
         const emaShortSeries = chart.addLineSeries({ color: '#00bcd4', lineWidth: 1 });
         emaShortSeries.setData(indicatorData.ema_short);
         const emaLongSeries = chart.addLineSeries({ color: '#e91e63', lineWidth: 1 });
         emaLongSeries.setData(indicatorData.ema_long);
+        indicatorSeries.ema_short = emaShortSeries;
+        indicatorSeries.ema_long = emaLongSeries;
     }
     if (indicatorData.ma) {
         const maSeries = chart.addLineSeries({ color: '#ffeb3b', lineWidth: 1 });
         maSeries.setData(indicatorData.ma);
+        indicatorSeries.ma = maSeries;
     }
     if (indicatorData.bollinger_upper) {
         const bollingerUpperSeries = chart.addLineSeries({ color: '#8bc34a', lineWidth: 1 });
@@ -238,22 +259,32 @@ export function updateChart(candles, priceLevels = null) {
         bollingerMiddleSeries.setData(indicatorData.bollinger_middle);
         const bollingerLowerSeries = chart.addLineSeries({ color: '#8bc34a', lineWidth: 1 });
         bollingerLowerSeries.setData(indicatorData.bollinger_lower);
+        indicatorSeries.bollinger_upper = bollingerUpperSeries;
+        indicatorSeries.bollinger_middle = bollingerMiddleSeries;
+        indicatorSeries.bollinger_lower = bollingerLowerSeries;
     }
     if (indicatorData.aroon_up) {
         const aroonUpSeries = chart.addLineSeries({ color: '#4caf50', lineWidth: 1 });
         aroonUpSeries.setData(indicatorData.aroon_up);
         const aroonDownSeries = chart.addLineSeries({ color: '#f44336', lineWidth: 1 });
         aroonDownSeries.setData(indicatorData.aroon_down);
+        indicatorSeries.aroon_up = aroonUpSeries;
+        indicatorSeries.aroon_down = aroonDownSeries;
     }
     if (indicatorData.pivot) {
         indicatorData.pivot.forEach((level, i) => {
-            const pivotSeries = chart.addLineSeries({ color: i === 0 ? '#ff9800' : i === 1 ? '#f44336' : '#2196f3', lineWidth: 1 });
+            const pivotSeries = chart.addLineSeries({ 
+                color: i === 0 ? '#ff9800' : i === 1 ? '#f44336' : '#2196f3', 
+                lineWidth: 1 
+            });
             pivotSeries.setData([level]);
+            indicatorSeries[`pivot_${i}`] = pivotSeries;
         });
     }
     if (indicatorData.volume) {
         const volumeSeries = chart.addHistogramSeries({ color: '#26a69a' });
         volumeSeries.setData(indicatorData.volume);
+        indicatorSeries.volume = volumeSeries;
     }
     if (indicatorData.ichimoku_tenkan) {
         const tenkanSeries = chart.addLineSeries({ color: '#2196f3', lineWidth: 1 });
@@ -264,40 +295,52 @@ export function updateChart(candles, priceLevels = null) {
         senkouASeries.setData(indicatorData.ichimoku_senkou_a);
         const senkouBSeries = chart.addLineSeries({ color: '#ff9800', lineWidth: 1 });
         senkouBSeries.setData(indicatorData.ichimoku_senkou_b);
+        indicatorSeries.ichimoku_tenkan = tenkanSeries;
+        indicatorSeries.ichimoku_kijun = kijunSeries;
+        indicatorSeries.ichimoku_senkou_a = senkouASeries;
+        indicatorSeries.ichimoku_senkou_b = senkouBSeries;
     }
     if (indicatorData.fib) {
-        indicatorData.fib.forEach(level => {
+        indicatorData.fib.forEach((level, i) => {
             const fibSeries = chart.addLineSeries({ color: '#ffeb3b', lineWidth: 1 });
             fibSeries.setData([level]);
+            indicatorSeries[`fib_${i}`] = fibSeries;
         });
     }
     if (indicatorData.cci) {
         const cciSeries = chart.addLineSeries({ color: '#e91e63', lineWidth: 1 });
         cciSeries.setData(indicatorData.cci);
+        indicatorSeries.cci = cciSeries;
     }
     if (indicatorData.obv) {
         const obvSeries = chart.addLineSeries({ color: '#00bcd4', lineWidth: 1 });
         obvSeries.setData(indicatorData.obv);
+        indicatorSeries.obv = obvSeries;
     }
     if (indicatorData.chaikin_osc) {
         const chaikinSeries = chart.addLineSeries({ color: '#9c27b0', lineWidth: 1 });
         chaikinSeries.setData(indicatorData.chaikin_osc);
+        indicatorSeries.chaikin_osc = chaikinSeries;
     }
     if (indicatorData.supertrend) {
         const supertrendSeries = chart.addLineSeries({ color: '#4caf50', lineWidth: 1 });
         supertrendSeries.setData(indicatorData.supertrend);
+        indicatorSeries.supertrend = supertrendSeries;
     }
     if (indicatorData.psar) {
         const psarSeries = chart.addLineSeries({ color: '#ff5722', lineWidth: 1 });
         psarSeries.setData(indicatorData.psar);
+        indicatorSeries.psar = psarSeries;
     }
     if (indicatorData.fractals) {
         const fractalsSeries = chart.addLineSeries({ color: '#3f51b5', lineWidth: 1 });
         fractalsSeries.setData(indicatorData.fractals);
+        indicatorSeries.fractals = fractalsSeries;
     }
     if (indicatorData.zigzag) {
         const zigzagSeries = chart.addLineSeries({ color: '#ff9800', lineWidth: 1 });
         zigzagSeries.setData(indicatorData.zigzag);
+        indicatorSeries.zigzag = zigzagSeries;
     }
     if (indicatorData.ha) {
         const haSeries = chart.addCandlestickSeries({
@@ -305,9 +348,10 @@ export function updateChart(candles, priceLevels = null) {
             downColor: '#ef5350',
             borderVisible: false,
             wickUpColor: '#26a69a',
-            wickDownColor: '#ef5350'
+            wickDownColor: '#ef5350',
         });
         haSeries.setData(indicatorData.ha);
+        indicatorSeries.ha = haSeries;
     }
     if (indicatorData.don_upper) {
         const donUpperSeries = chart.addLineSeries({ color: '#2196f3', lineWidth: 1 });
@@ -316,12 +360,17 @@ export function updateChart(candles, priceLevels = null) {
         donMiddleSeries.setData(indicatorData.don_middle);
         const donLowerSeries = chart.addLineSeries({ color: '#f44336', lineWidth: 1 });
         donLowerSeries.setData(indicatorData.don_lower);
+        indicatorSeries.don_upper = donUpperSeries;
+        indicatorSeries.don_middle = donMiddleSeries;
+        indicatorSeries.don_lower = donLowerSeries;
     }
     if (indicatorData.fibbands) {
         const fibbandsSeries = chart.addLineSeries({ color: '#ffeb3b', lineWidth: 1 });
         fibbandsSeries.setData(indicatorData.fibbands);
         const vwmaSeries = chart.addLineSeries({ color: '#8bc34a', lineWidth: 1 });
         vwmaSeries.setData(indicatorData.vwma);
+        indicatorSeries.fibbands = fibbandsSeries;
+        indicatorSeries.vwma = vwmaSeries;
     }
     if (indicatorData.envelope_upper) {
         const envelopeUpperSeries = chart.addLineSeries({ color: '#00bcd4', lineWidth: 1 });
@@ -330,15 +379,17 @@ export function updateChart(candles, priceLevels = null) {
         envelopeMiddleSeries.setData(indicatorData.envelope_middle);
         const envelopeLowerSeries = chart.addLineSeries({ color: '#e91e63', lineWidth: 1 });
         envelopeLowerSeries.setData(indicatorData.envelope_lower);
+        indicatorSeries.envelope_upper = envelopeUpperSeries;
+        indicatorSeries.envelope_middle = envelopeMiddleSeries;
+        indicatorSeries.envelope_lower = envelopeLowerSeries;
     }
 
     chart.timeScale().fitContent();
 }
 
 export function updateChartWithSignal(signalResult, candles) {
-    
     document.getElementById('chart-data-container').style.display = 'block';
-    
+
     if (!initializeChart()) {
         console.warn('Skipping chart update: Initialization failed.');
         document.getElementById('success').className = 'error';
@@ -378,9 +429,9 @@ export function updateChartLegend(candles, priceLevels = null) {
     legendHtml += `Close: ${latestClose.toFixed(2)}<br>`;
 
     // Price Levels
-    if (priceLevels) {
-        legendHtml += `Support: ${Number(priceLevels.buyPrice).toFixed(2)}<br>`;
-        legendHtml += `Resistance: ${Number(priceLevels.sellPrice).toFixed(2)}<br>`;
+    if (priceLevels && priceLevels.support && priceLevels.resistance && priceLevels.stopLoss && priceLevels.takeProfit) {
+        legendHtml += `Support: ${Number(priceLevels.support).toFixed(2)}<br>`;
+        legendHtml += `Resistance: ${Number(priceLevels.resistance).toFixed(2)}<br>`;
         legendHtml += `Stop-Loss: ${Number(priceLevels.stopLoss).toFixed(2)}<br>`;
         legendHtml += `Take-Profit: ${Number(priceLevels.takeProfit).toFixed(2)}<br>`;
     }
@@ -508,5 +559,3 @@ export function updateChartLegend(candles, priceLevels = null) {
 
     legendContainer.innerHTML = legendHtml;
 }
-
-export { calculateIndicatorChartData }; // Re-export for use in updateChart
