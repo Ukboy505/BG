@@ -1,5 +1,6 @@
 // js/signals.js
 import { calculateIndicators } from './indicators.js';
+import { getIndicatorParams } from './ui.js';
 
 export function generateTradingSignal(candles) {
     try {
