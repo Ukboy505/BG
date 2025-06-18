@@ -1,6 +1,6 @@
 // js/data.js
 import { generateTradingSignal } from './signals.js';
-import { getIndicatorParams, updateWithSignal } from './ui.js';
+import { getIndicatorParams, updateWithSignal, refreshTable } from './ui.js';
 import { granularityToSeconds } from './validation.js';
 import { updateChartWithSignal } from './chart.js';
 
