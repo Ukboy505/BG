@@ -1,0 +1,333 @@
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+            max-width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background-color: #3a3a3a;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        td {
+            color: #e0e0e0;
+        }
+
+        tr:hover {
+            background-color: #333;
+        }
+
+        .input-group, .indicator-settings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            max-width: 100%;
+        }
+
+        .input-field, .indicator-group {
+            flex: 1;
+            min-width: 140px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .indicator-group {
+            background-color: #3a3a3a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .input-field label, .indicator-group label {
+            font-size: 12px;
+            color: #aaa;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="datetime-local"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background-color: #4a4a4a;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            vertical-align: middle;
+            position: relative;
+            z-index: 2;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: #e0e0e0;
+            cursor: pointer;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(100, 149, 237, 0.5);
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4a90e2;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        button:active {
+            background-color: #2a6099;
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        #success, #signal {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .strong-buy { color: #28a745; font-weight: bold; }
+        .moderate-buy { color: #66cdaa; font-weight: bold; }
+        .weak-buy { color: #98fb98; font-weight: bold; }
+        .very-weak-buy { color: #c8e6c9; font-weight: bold; }
+        .hold { color: #ffc107; font-weight: bold; }
+        .very-weak-sell { color: #ef9a9a; font-weight: bold; }
+        .weak-sell { color: #f08080; font-weight: bold; }
+        .moderate-sell { color: #e9967a; font-weight: bold; }
+        .strong-sell { color: #dc3545; font-weight: bold; }
+
+        .collapsible-content {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .collapsible-content.active {
+            display: block;
+        }
+
+        .tooltip {
+            position: relative;
+            margin-left: 10px;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 180px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            top: -150%;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .score-container {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #3a3a3a;
+            border-radius: 8px;
+            max-width: 100%;
+        }
+
+        .score-container h3 {
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .score-list, .price-range-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .score-list li, .price-range-list li {
+            font-size: 14px;
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .timezone-selector {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .timezone-selector label {
+            font-size: 14px;
+            color: #aaa;
+            margin-right: 10px;
+        }
+
+        .timezone-selector select {
+            padding: 8px;
+            border-radius: 6px;
+            background-color: #4a4a4a;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            table, th, td {
+                font-size: 13px;
+            }
+
+            button, input, select {
+                font-size: 13px;
+            }
+
+            .input-field, .indicator-group {
+                min-width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .input-group, .indicator-settings {
+                gap: 10px;
+            }
+
+            .indicator-group {
+                padding: 10px;
+            }
+
+            .tooltip .tooltiptext {
+                width: 150px;
+                font-size: 12px;
+                top: -130%;
+            }
+
+            .checkbox-container {
+                margin-bottom: 10px;
+            }
+
+            .score-container {
+                padding: 8px;
+            }
+
+            .score-list li, .price-range-list li {
+                font-size: 13px;
+            }
+
+            .timezone-selector select {
+                width: 100%;
+            }
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        h2[id^="toggle-"] {
+            background-color: #444;
+            color: #e0e0e0;
+            padding: 10px;
+            margin: 0 0 10px 0;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: left;
+        }
+
+        h2[id^="toggle-"]:hover {
+            background-color: #555;
+        }
+
+        #chart-container {
+            width: 100%;
+            height: 400px;
+        }
+        
+        #chart-legend {
+    max-width: 100%;
+    overflow: auto;
+}
+
+        #candlestick-data-container h2:last-child {
+            margin-top: 10px;
+        }
