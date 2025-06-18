@@ -5,6 +5,9 @@ import { generateTradingSignal } from './signals.js';
 import { updateWithSignal, restoreInitialAnalysis, resetInputs, getIndicatorParams } from './ui.js';
 import { validateWeights, validatePercentageInputs, validateLookback } from './validation.js';
 
+
+export { atr };
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeChart();
     document.getElementById('request').addEventListener('click', fetchOHLCV, { passive: true });
