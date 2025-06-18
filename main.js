@@ -6,7 +6,7 @@ import { updateWithSignal, restoreInitialAnalysis, resetInputs, getIndicatorPara
 import { validateWeights, validatePercentageInputs, validateLookback } from './validation.js';
 
 
-export { atr };
+export atr;
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeChart();
