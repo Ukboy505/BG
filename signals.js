@@ -1,6 +1,7 @@
 // js/signals.js
 import { calculateIndicators } from './indicators.js';
 import { getIndicatorParams } from './ui.js';
+import { atr } from './ta-lib.js';
 
 export function generateTradingSignal(candles) {
     try {
