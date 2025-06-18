@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bitget Spot Trading Signals</title>
-    <link rel="stylesheet" href="./styles.css">
-    <script src="./lightweight-charts.js"></script>
-    <script src="./ta-lib.js"></script>
-    <script src="./toggle.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <script src="lib/lightweight-charts.js"></script>
+    <script src="lib/ta-lib.js"></script>
+    <script src="js/toggle.js"></script>
 </head>
 <body>
     <div class="container">
@@ -674,12 +675,14 @@
                             <span class="tooltiptext">Parabolic Stop and Reverse for trend direction. Step for acceleration, Max for maximum step.</span>
                         </span>
                     </div>
-                    evangelist-group:
-                        <span for="psar-step">Step</span>
-                    <input type="number" id="psar-step" value="0.14" min="0.01" max="0.1">
                     <div class="input-field">
-                        <span for="psar-max">Max</span>
-                    <input type="number" id="psar-max" value="0.2" min="0.1" max="0.5" step="0.01">
+                        <label for="psar-step">Step</label>
+                        <input type="number" id="psar-step" value="0.02" min="0.01" max="0.1" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="psar-max">Max</label>
+                        <input type="number" id="psar-max" value="0.2" min="0.1" max="0.5" step="0.01">
+                    </div>
                     <div class="input-field">
                         <label for="psar-weight">Weight</label>
                         <input type="number" id="psar-weight" value="5" min="0">
@@ -723,6 +726,7 @@
                     <div class="input-field">
                         <label for="zigzag-deviation">Deviation</label>
                         <input type="number" id="zigzag-deviation" value="0.05" min="0.01" max="0.2" step="0.01">
+                    </div>
                     <div class="input-field">
                         <label for="zigzag-weight">Weight</label>
                         <input type="number" id="zigzag-weight" value="5" min="0">
@@ -835,10 +839,12 @@
             </div>
         </div>
         <p id="success"></p>
-        <h2 id="toggle-chart-data" onclick="toggleSection('chart-data-container', 'toggle-chart-data')">Show Chart Data ▼</h2>
-        <div id="chart-data-container" class="collapsible-content" style="display: none;">
-            <div id="chart-legend" style="margin-bottom: 10px; color: #e0e0e0;"></div>
-            <div id="chart-container" style="margin-top: 20px;"></div>
+        <div id="chart-data-container">
+            <h2 id="toggle-chart-data" onclick="toggleSection('chart-content', 'toggle-chart-data')">Show Chart Data ▼</h2>
+            <div id="chart-content" class="collapsible-content" style="display: none;">
+                <div id="chart-legend" style="margin-bottom: 10px; color: #e0e0e0;"></div>
+                <div id="chart-container" style="margin-top: 20px;"></div>
+            </div>
         </div>
         <div id="signal-container" class="score-container">
             <h2 id="signal"></h2>
@@ -849,6 +855,6 @@
             <ul id="details" class="details-list"></ul>
         </div>
     </div>
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
