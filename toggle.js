@@ -1,17 +1,19 @@
-// js/toggle.js
-function toggleSection(containerId, buttonId) {
-            const container = document.getElementById(containerId);
-            const buttons = document.querySelectorAll(`[onclick="toggleSection('${containerId}', '${buttonId}')]`);
+function toggleSection(elementOrId, toggleId) {
+    let section, toggleElement;
+    
+    if (typeof elementOrId === 'string') {
+        section = document.getElementById(elementOrId);
+        toggleElement = document.getElementById(toggleId);
+    } else {
+        toggleElement = elementOrId;
+        section = toggleElement.nextElementSibling;
+    }
 
-            if (container.style.display === 'none') {
-                container.style.display = 'block';
-                buttons.forEach(button => {
-                    button.innerHTML = button.innerHTML.replace('Show', 'Hide').replace('▼', '▲');
-                });
-            } else {
-                container.style.display = 'none';
-                buttons.forEach(button => {
-                    button.innerHTML = button.innerHTML.replace('Hide', 'Show').replace('▲', '▼');
-                });
-            }
-        }
+    if (section && toggleElement) {
+        const isHidden = section.style.display === 'none' || section.style.display === '';
+        section.style.display = isHidden ? 'block' : 'none';
+        toggleElement.innerHTML = isHidden ? 
+            toggleElement.innerHTML.replace('▼', '▲') : 
+            toggleElement.innerHTML.replace('▲', '▼');
+    }
+}
